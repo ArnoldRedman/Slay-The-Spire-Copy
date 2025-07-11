@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using PrimeTween;
 using UnityEngine;
 using UnityEngine.Splines;
@@ -13,12 +14,48 @@ public class HandView : MonoBehaviour
     private readonly List<CardView> cards = new List<CardView>();//当前持有手牌
 
 
+    /// <summary>
+    /// 向手牌区添加卡牌
+    /// </summary>
+    /// <param name="cardView"></param>
+    /// <returns></returns>
     public IEnumerator AddCard(CardView cardView)
     {
         cards.Add(cardView);
         yield return UpdateCardPositions(0.15f);
     }
+    
+    /// <summary>
+    /// 从手牌中丢弃卡牌
+    /// </summary>
+    /// <param name="card"></param>
+    /// <returns></returns>
+    public CardView RemoveCard(Card card)
+    {
+        CardView cardView = GetCardView(card);
+        if (cardView == null)
+            return null;
+        
+        cards.Remove(cardView);
+        StartCoroutine(UpdateCardPositions(0.15f));
+        return cardView;
+    }
 
+    /// <summary>
+    /// 根据传入卡牌信息寻找卡牌位置
+    /// </summary>
+    /// <param name="card"></param>
+    /// <returns></returns>
+    private CardView GetCardView(Card card)
+    {
+        return cards.Where(cardView => cardView.Card == card).FirstOrDefault();
+    }
+
+    /// <summary>
+    /// 更新手牌在手牌曲线上的位置
+    /// </summary>
+    /// <param name="duration"></param>
+    /// <returns></returns>
     private IEnumerator UpdateCardPositions(float duration)
     {
         if (cards.Count == 0)
@@ -52,5 +89,4 @@ public class HandView : MonoBehaviour
         }
         yield return new WaitForSeconds(duration);
     }
-    
 }
