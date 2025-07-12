@@ -7,12 +7,6 @@ public class CardViewCreator : MonoSingleton<CardViewCreator>
 {
     [SerializeField] private CardView cardViewPrefab;
 
-    protected override void Awake()
-    {
-        base.Awake();
-        DontDestroyOnLoad(this);
-    }
-
     /// <summary>
     /// 生成新的卡牌
     /// </summary>

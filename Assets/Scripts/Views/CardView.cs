@@ -92,7 +92,8 @@ public class CardView : MonoBehaviour
         if (!Interactions.Instance.PlayerCanInteract())
             return;
 
-        if (Physics.Raycast(transform.position, Vector3.forward, out RaycastHit hit, 10f, dropLayer))
+        if (ManaSystem.Instance.HasEnoughMana(Card.Mana) 
+            && Physics.Raycast(transform.position, Vector3.forward, out RaycastHit hit, 10f, dropLayer))
         {
             PlayCardGA playCardGA = new PlayCardGA(Card);//以显示卡牌作为中间数据 读取出去新的卡牌数据 获取到当前选中卡牌数据
             ActionSystem.Instance.Perform(playCardGA);

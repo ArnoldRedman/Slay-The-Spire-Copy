@@ -49,7 +49,7 @@ public class CardSystem : MonoSingleton<CardSystem>
     /// <summary>
     /// 玩家使用卡牌
     /// </summary>
-    /// <param name="card"></param>
+    /// <param name="playCardGA"></param>
     /// <returns></returns>
     private IEnumerator PlayCardPerformer(PlayCardGA playCardGA)
     {
@@ -57,6 +57,17 @@ public class CardSystem : MonoSingleton<CardSystem>
         hand.Remove(playCardGA.Card);
         CardView cardView = handView.RemoveCard(playCardGA.Card);
         yield return DiscardCard(cardView);
+
+        //消耗能量
+        SpendManaGA spendManaGA = new SpendManaGA(playCardGA.Card.Mana);
+        ActionSystem.Instance.AddReaction(spendManaGA);
+        
+        //卡牌的使用效果
+        foreach (var effect in playCardGA.Card.Effects)
+        {
+            PerformEffectGA performEffectGA = new PerformEffectGA(effect);
+            ActionSystem.Instance.AddReaction(performEffectGA);
+        }
     }
     
     /// <summary>
@@ -100,6 +111,7 @@ public class CardSystem : MonoSingleton<CardSystem>
             discardPile.Add(card);
             CardView cardView = handView.RemoveCard(card);
             yield return DiscardCard(cardView);
+            Destroy(cardView.gameObject);
         }
         //清空手牌数据
         hand.Clear();

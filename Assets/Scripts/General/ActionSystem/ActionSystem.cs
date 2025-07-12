@@ -51,21 +51,22 @@ public class ActionSystem : MonoSingleton<ActionSystem>
     private IEnumerator Flow(GameAction action, Action OnFlowFinished = null)
     {
         // ===== 阶段1：前置处理 =====
-        reactions = action.PreReactions; // 获取前置反应链
-        PerformSubscribers(action, preSubs); // 执行前置订阅者
-        yield return PerformReactions(); // 执行所有前置反应
-        
-        // ===== 阶段2：主执行体 =====
-        reactions = action.PostReactions; 
-        yield return PerformPerformer(action); // 执行核心逻辑
-        yield return PerformReactions(); // 执行伴随反应
-        
+        reactions = action.PreReactions;
+        PerformSubscribers(action, preSubs);
+        yield return PerformReactions();
+    
+        // ===== 阶段2：主执行 =====
+        // 执行核心逻辑前重置反应列表
+        reactions = action.PerformReactions; // 使用专门的PerformReactions列表
+        yield return PerformPerformer(action);
+        yield return PerformReactions();
+    
         // ===== 阶段3：后置处理 =====
-        reactions = action.PostReactions; 
-        PerformSubscribers(action, postSubs); // 执行后置订阅者
-        yield return PerformReactions(); // 执行所有后置反应
-        
-        OnFlowFinished?.Invoke(); 
+        reactions = action.PostReactions; // 使用独立的PostReactions列表
+        PerformSubscribers(action, postSubs);
+        yield return PerformReactions();
+    
+        OnFlowFinished?.Invoke();
     }
 
     /// <summary>
