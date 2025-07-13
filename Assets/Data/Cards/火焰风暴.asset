@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7baddb6fbc93a8744a7f75376695118d, type: 3}
+  m_Name: "\u706B\u7130\u98CE\u66B4"
+  m_EditorClassIdentifier: 
+  <Description>k__BackingField: "\u5BF9\u6240\u6709\u654C\u4EBA\u53E0\u52A0\u4E09\u5C42\u71C3\u70E7\u6548\u679C"
+  <Mana>k__BackingField: 2
+  <Image>k__BackingField: {fileID: 21300000, guid: 2039cf80d9258674a91941b62a8f3845,
+    type: 3}
+  <ManualTargetEffect>k__BackingField:
+    rid: -2
+  <OtherEffects>k__BackingField:
+  - <TargetMode>k__BackingField:
+      rid: 2989584517612175362
+    <Effect>k__BackingField:
+      rid: 2989584517612175363
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 2989584517612175362
+      type: {class: AllEnemiesTM, ns: , asm: Assembly-CSharp}
+      data: 
+    - rid: 2989584517612175363
+      type: {class: AddStatusEffectEffect, ns: , asm: Assembly-CSharp}
+      data:
+        statusEffectType: 1
+        stackCount: 3

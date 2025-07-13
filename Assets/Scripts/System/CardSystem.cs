@@ -20,8 +20,7 @@ public class CardSystem : MonoSingleton<CardSystem>
         ActionSystem.AttachPerformer<DrawCardsGA>(DrawCardPerformer);
         ActionSystem.AttachPerformer<DiscardAllCardGA>(DiscardAllCardPerformer);
         ActionSystem.AttachPerformer<PlayCardGA>(PlayCardPerformer);
-        ActionSystem.SubscribeReaction<EnemyTurnGA>(EnemyTurnPreReaction, ReactionTiming.PRE);
-        ActionSystem.SubscribeReaction<EnemyTurnGA>(EnemyTurnPostReaction, ReactionTiming.POST);
+        
     }
 
     private void OnDisable()
@@ -29,8 +28,7 @@ public class CardSystem : MonoSingleton<CardSystem>
         ActionSystem.DetachPerformer<DrawCardsGA>();
         ActionSystem.DetachPerformer<DiscardAllCardGA>();
         ActionSystem.DetachPerformer<PlayCardGA>();
-        ActionSystem.UnsubscribeReaction<EnemyTurnGA>(EnemyTurnPreReaction, ReactionTiming.PRE);
-        ActionSystem.UnsubscribeReaction<EnemyTurnGA>(EnemyTurnPostReaction, ReactionTiming.POST);
+        
     }
 
     /// <summary>
@@ -61,11 +59,18 @@ public class CardSystem : MonoSingleton<CardSystem>
         //消耗能量
         SpendManaGA spendManaGA = new SpendManaGA(playCardGA.Card.Mana);
         ActionSystem.Instance.AddReaction(spendManaGA);
+
+        if (playCardGA.Card.ManualTargetEffect != null)
+        {
+            PerformEffectGA performEffectGA = new PerformEffectGA(playCardGA.Card.ManualTargetEffect,new List<CombatantView>(){ playCardGA.ManualTarget });
+            ActionSystem.Instance.AddReaction(performEffectGA);
+        }
         
         //卡牌的使用效果
-        foreach (var effect in playCardGA.Card.Effects)
+        foreach (var effectWrapper in playCardGA.Card.OtherEffects)
         {
-            PerformEffectGA performEffectGA = new PerformEffectGA(effect);
+            List<CombatantView> targets = effectWrapper.TargetMode.GetTargets();
+            PerformEffectGA performEffectGA = new PerformEffectGA(effectWrapper.Effect, targets);
             ActionSystem.Instance.AddReaction(performEffectGA);
         }
     }
@@ -105,28 +110,29 @@ public class CardSystem : MonoSingleton<CardSystem>
     /// <returns></returns>
     private IEnumerator DiscardAllCardPerformer(DiscardAllCardGA discardAllCardGA)
     {
-        //将手牌全部添加到弃牌堆
+        //将手牌逐个移除视野启动弃牌动画
         foreach (var card in hand)
         {
-            discardPile.Add(card);
             CardView cardView = handView.RemoveCard(card);
             yield return DiscardCard(cardView);
-            Destroy(cardView.gameObject);
         }
         //清空手牌数据
         hand.Clear();
     }
 
     /// <summary>
-    /// 弃牌的动画效果
+    /// 弃牌
     /// </summary>
     /// <param name="cardView"></param>
     /// <returns></returns>
     private IEnumerator DiscardCard(CardView cardView)
     {
+        //将需要丢弃的牌数据添加到弃牌堆
+        discardPile.Add(cardView.Card);
         Tween.Scale(cardView.transform, Vector3.zero, 0.15f);
         var tween = Tween.Position(cardView.transform, discardPilePoint.position, 0.15f);
         yield return tween;
+        Destroy(cardView.gameObject);
     }
 
     /// <summary>
@@ -155,31 +161,4 @@ public class CardSystem : MonoSingleton<CardSystem>
         //清空原本的弃牌堆数据
         discardPile.Clear();
     }
-
-    #region 回合事件触发
-
-    /// <summary>
-    /// 敌人回合前事件
-    /// </summary>
-    /// <param name="enemyTurnGA"></param>
-    private void EnemyTurnPreReaction(EnemyTurnGA enemyTurnGA)
-    {
-        //清空玩家手中所有手牌
-        DiscardAllCardGA discardAllCardGA = new DiscardAllCardGA();
-        ActionSystem.Instance.AddReaction(discardAllCardGA);
-    }
-    
-    /// <summary>
-    /// 敌人回合结束事件
-    /// </summary>
-    /// <param name="enemyTurnGA"></param>
-    private void EnemyTurnPostReaction(EnemyTurnGA enemyTurnGA)
-    {
-        //设置玩家可抽卡数量为5
-        DrawCardsGA drawCardsGA = new DrawCardsGA(5);
-        ActionSystem.Instance.AddReaction(drawCardsGA);
-    }
-
-    #endregion
-    
 }

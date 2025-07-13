@@ -63,14 +63,21 @@ public class CardView : MonoBehaviour
     {
         if (!Interactions.Instance.PlayerCanInteract())
             return;
-        
-        Interactions.Instance.PlayerIsDragging = true;
-        wrapper.SetActive(true);
-        CardViewHoverSystem.Instance.Hide();
-        dragStartPosition = transform.position;
-        dragStartRotation = transform.rotation;
-        transform.rotation = Quaternion.Euler(0, 0, 0);
-        transform.position = MouseUtil.GetMousePositionInWorldSpace(-1);
+
+        if (Card.ManualTargetEffect != null)
+        {
+            ManualTargetSystem.Instance.StartTargeting(transform.position);
+        }
+        else
+        {
+            Interactions.Instance.PlayerIsDragging = true;
+            wrapper.SetActive(true);
+            CardViewHoverSystem.Instance.Hide();
+            dragStartPosition = transform.position;
+            dragStartRotation = transform.rotation;
+            transform.rotation = Quaternion.Euler(0, 0, 0);
+            transform.position = MouseUtil.GetMousePositionInWorldSpace(-1);
+        }
     }
 
     /// <summary>
@@ -79,6 +86,9 @@ public class CardView : MonoBehaviour
     private void OnMouseDrag()
     {
         if (!Interactions.Instance.PlayerCanInteract())
+            return;
+
+        if (Card.ManualTargetEffect != null)
             return;
         
         transform.position = MouseUtil.GetMousePositionInWorldSpace(-1);
@@ -92,17 +102,29 @@ public class CardView : MonoBehaviour
         if (!Interactions.Instance.PlayerCanInteract())
             return;
 
-        if (ManaSystem.Instance.HasEnoughMana(Card.Mana) 
-            && Physics.Raycast(transform.position, Vector3.forward, out RaycastHit hit, 10f, dropLayer))
+        if (Card.ManualTargetEffect != null)
         {
-            PlayCardGA playCardGA = new PlayCardGA(Card);//以显示卡牌作为中间数据 读取出去新的卡牌数据 获取到当前选中卡牌数据
-            ActionSystem.Instance.Perform(playCardGA);
+            EnemyView target = ManualTargetSystem.Instance.EnemyTargeting(MouseUtil.GetMousePositionInWorldSpace(-1));
+            if (target != null && ManaSystem.Instance.HasEnoughMana(Card.Mana))
+            {
+                PlayCardGA playCardGA = new PlayCardGA(Card, target);
+                ActionSystem.Instance.Perform(playCardGA);
+            }
         }
-        else//没放在有效区域回到手牌区域
+        else
         {
-            transform.position = dragStartPosition;
-            transform.rotation = dragStartRotation;
+            if (ManaSystem.Instance.HasEnoughMana(Card.Mana) 
+                && Physics.Raycast(transform.position, Vector3.forward, out RaycastHit hit, 10f, dropLayer))
+            {
+                PlayCardGA playCardGA = new PlayCardGA(Card);//以显示卡牌作为中间数据 读取出去新的卡牌数据 获取到当前选中卡牌数据
+                ActionSystem.Instance.Perform(playCardGA);
+            }
+            else//没放在有效区域回到手牌区域
+            {
+                transform.position = dragStartPosition;
+                transform.rotation = dragStartRotation;
+            }
+            Interactions.Instance.PlayerIsDragging = false;
         }
-        Interactions.Instance.PlayerIsDragging = false;
     }
 }

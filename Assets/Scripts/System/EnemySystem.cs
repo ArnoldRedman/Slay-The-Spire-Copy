@@ -47,6 +47,14 @@ public class EnemySystem : MonoSingleton<EnemySystem>
 
         foreach (var enemy in enemyBoardView.EnemyViews)
         {
+            //可能有的敌人会造成燃烧伤害
+            int burnStacks = enemy.GetStatusEffectStacks(StatusEffectType.BURN);
+            if (burnStacks > 0)
+            {
+                ApplyBurnGA applyBurnGA = new ApplyBurnGA(burnStacks, enemy);
+                ActionSystem.Instance.AddReaction(applyBurnGA);
+            }
+            
             AttackHeroGA attackHeroGA = new AttackHeroGA(enemy);
             ActionSystem.Instance.AddReaction(attackHeroGA);
         }
@@ -69,7 +77,7 @@ public class EnemySystem : MonoSingleton<EnemySystem>
         Tween.PositionX(attacker.transform, attacker.transform.position.x + 1f, 0.25f);
         //造成伤害
         DealDamageGA dealDamageGA = new DealDamageGA(attacker.AttackPower,
-            new List<CombatantView>() { HeroSystem.Instance.HeroView });
+            new List<CombatantView>() { HeroSystem.Instance.HeroView }, attackHeroGA.Caster);
         ActionSystem.Instance.AddReaction(dealDamageGA);
     }
 
